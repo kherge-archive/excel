@@ -1,0 +1,51 @@
+{
+    "type": "library",
+    "name": "kherge/excel",
+    "description": "Reads very large Excel (.xlsx) workbook files.",
+    "keywords": ["excel", "large", "microsoft", "office", "reader"],
+    "license": [
+        "MIT",
+        "Apache-2.0"
+    ],
+    "support": {
+        "issues": "https://gitlab.com/kherge-php/excel/issues",
+        "source": "https://gitlab.com/kherge-php/excel"
+    },
+
+    "authors": [
+        {
+            "name": "Kevin Herrera",
+            "email": "kevin@herrera.io",
+            "homepage": "http://kevin.herrera.io/",
+            "role": "Developer"
+        }
+    ],
+
+    "autoload": {
+        "psr-4": {
+            "KHerGe\\Excel\\": "src/KHerGe/Excel"
+        }
+    },
+
+    "autoload-dev": {
+        "psr-4": {
+            "Test\\KHerGe\\Excel\\": "tests/KHerGe/Excel"
+        }
+    },
+
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.x-dev"
+        }
+    },
+
+    "require": {
+        "php": ">=5.6",
+
+        "ext-pdo_sqlite": "*",
+        "ext-zip": "*",
+
+        "kherge/file-manager": "^2.6",
+        "kherge/xml": "^1.0"
+    }
+}
