@@ -1,0 +1,5 @@
+# Composer version tracking.
+/composer.lock
+
+# Composer managed files.
+/vendor/
