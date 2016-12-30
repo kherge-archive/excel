@@ -40,7 +40,9 @@ class SharedStringsTest extends TestCase
             [7, 'This is a rich text string.'],
             [8, 'Money'],
             [9, 'Fraction'],
-            [10, 'General']
+            [10, 'General'],
+            [11, 'Column Span'],
+            [12, 'Row Span']
         ];
     }
 
