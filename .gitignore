@@ -3,3 +3,7 @@
 
 # Composer managed files.
 /vendor/
+
+# Unpacked workbook files.
+/res/complex/
+/res/simple/
