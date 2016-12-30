@@ -49,6 +49,15 @@ SELECT MAX("row") FROM cells WHERE worksheet = :worksheet;
 SQL;
 
     /**
+     * The statement to count the number of worksheets in the workbook.
+     *
+     * @var string
+     */
+    const COUNT_WORKSHEETS = <<<SQL
+SELECT COUNT(*) FROM worksheets;
+SQL;
+
+    /**
      * The statement to insert a cell record.
      *
      * @var string
@@ -378,6 +387,20 @@ SQL;
             self::COUNT_ROWS,
             ['worksheet' => $worksheet]
         );
+    }
+
+    /**
+     * Counts the number of worksheets in the workbook.
+     *
+     * ```php
+     * $count = $database->countWorksheets();
+     * ```
+     *
+     * @return integer The number of worksheets.
+     */
+    public function countWorksheets()
+    {
+        return $this->column(self::COUNT_WORKSHEETS);
     }
 
     /**

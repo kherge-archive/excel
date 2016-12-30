@@ -277,6 +277,28 @@ class DatabaseTest extends TestCase
     }
 
     /**
+     * Verify that the number of worksheets in the workbook is retrieved.
+     *
+     * @covers ::countWorksheets
+     */
+    public function testCountTheNumberOfWorksheetsInTheWorkBook()
+    {
+        $this->database->transaction(
+            function (Database $database) {
+                $database->addWorksheet(1, 'Alpha');
+                $database->addWorksheet(2, 'Beta');
+                $database->addWorksheet(3, 'Gamma');
+            }
+        );
+
+        self::assertEquals(
+            3,
+            $this->database->countWorksheets(),
+            'The number of worksheets was not returned.'
+        );
+    }
+
+    /**
      * Verify that the index for a worksheet can be retrieved by its name.
      *
      * @covers ::addWorksheet
