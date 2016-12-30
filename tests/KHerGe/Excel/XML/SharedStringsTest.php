@@ -23,9 +23,9 @@ class SharedStringsTest extends TestCase
     private static $strings;
 
     /**
-     * Returns the expected shared strings and their keys.
+     * Returns the expected shared strings and their indexes.
      *
-     * @return array[] The expected strings and keys.
+     * @return array[] The expected strings and indexes.
      */
     public function getSharedStrings()
     {
@@ -47,17 +47,17 @@ class SharedStringsTest extends TestCase
     }
 
     /**
-     * Verify that the shared string is returned with the correct key.
+     * Verify that the shared string is returned with the correct index.
      *
-     * @param integer $key    The expected key.
+     * @param integer $index  The expected key.
      * @param string  $string The expected string.
      *
      * @dataProvider getSharedStrings
      */
-    public function testGetTheSharedStringWithItsKey($key, $string)
+    public function testGetTheSharedStringWithItsIndex($index, $string)
     {
         self::assertEquals(
-            $key,
+            $index,
             self::$strings->key(),
             'The expected string key was not returned.'
         );

@@ -21,11 +21,11 @@ class SharedStrings implements Iterator
     private $factory;
 
     /**
-     * The current shared string key.
+     * The index of the current shared string.
      *
      * @var integer
      */
-    private $key = -1;
+    private $index = -1;
 
     /**
      * The XML reader.
@@ -64,7 +64,7 @@ class SharedStrings implements Iterator
      */
     public function key()
     {
-        return $this->key;
+        return $this->index;
     }
 
     /**
@@ -72,7 +72,7 @@ class SharedStrings implements Iterator
      */
     public function next()
     {
-        $this->key++;
+        $this->index++;
 
         $this->string = null;
 
@@ -84,7 +84,7 @@ class SharedStrings implements Iterator
      */
     public function rewind()
     {
-        $this->key = -1;
+        $this->index = -1;
 
         $reader = call_user_func($this->factory);
         $reader->rewind();
