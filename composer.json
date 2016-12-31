@@ -46,6 +46,6 @@
         "ext-zip": "*",
 
         "kherge/file-manager": "^2.6",
-        "kherge/xml": "^1.0"
+        "kherge/xml": "^1.1"
     }
 }
