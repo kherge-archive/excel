@@ -33,52 +33,95 @@ class StylesReaderTest extends TestCase
         return [
 
             // #0
-            [new NumberFormatInfo(8, '"$"#,##0.00_);[Red]\("$"#,##0.00\)')],
+            [
+                '/styleSheet/numFmts/numFmt',
+                new NumberFormatInfo(8, '"$"#,##0.00_);[Red]\("$"#,##0.00\)')
+            ],
 
             // #1
-            [new NumberFormatInfo(164, '[$-409]m/d/yy\ h:mm\ AM/PM;@')],
+            [
+                '/styleSheet/numFmts/numFmt[2]',
+                new NumberFormatInfo(164, '[$-409]m/d/yy\ h:mm\ AM/PM;@')
+            ],
 
             // #2
-            [new CellStyleInfo(0, false, 0)],
+            [
+                '/styleSheet/cellXfs/xf',
+                new CellStyleInfo(0, false, 0)
+            ],
 
             // #3
-            [new CellStyleInfo(1, true, 1)],
+            [
+                '/styleSheet/cellXfs/xf[2]',
+                new CellStyleInfo(1, true, 1)
+            ],
 
             // #4
-            [new CellStyleInfo(2, true, 164)],
+            [
+                '/styleSheet/cellXfs/xf[3]',
+                new CellStyleInfo(2, true, 164)
+            ],
 
             // #5
-            [new CellStyleInfo(3, true, 14)],
+            [
+                '/styleSheet/cellXfs/xf[4]',
+                new CellStyleInfo(3, true, 14)
+            ],
 
             // #6
-            [new CellStyleInfo(4, true, 18)],
+            [
+                '/styleSheet/cellXfs/xf[5]',
+                new CellStyleInfo(4, true, 18)
+            ],
 
             // #7
-            [new CellStyleInfo(5, false, 0)],
+            [
+                '/styleSheet/cellXfs/xf[6]',
+                new CellStyleInfo(5, false, 0)
+            ],
 
             // #8
-            [new CellStyleInfo(6, true, 8)],
+            [
+                '/styleSheet/cellXfs/xf[7]',
+                new CellStyleInfo(6, true, 8)
+            ],
 
             // #9
-            [new CellStyleInfo(7, true, 12)],
+            [
+                '/styleSheet/cellXfs/xf[8]',
+                new CellStyleInfo(7, true, 12)
+            ],
 
             // #10
-            [new CellStyleInfo(8, false, 0)],
+            [
+                '/styleSheet/cellXfs/xf[9]',
+                new CellStyleInfo(8, false, 0)]
+            ,
 
             // #11
-            [new CellStyleInfo(9, false, 0)]
+            [
+                '/styleSheet/cellXfs/xf[10]',
+                new CellStyleInfo(9, false, 0)
+            ]
         ];
     }
 
     /**
      * Verify that the style information is iterated through.
      *
+     * @param string $path     The expected node path.
      * @param object $expected The expected information.
      *
      * @dataProvider getExpectedInformation
      */
-    public function testIterateThroughTheStyleInformation($expected)
+    public function testIterateThroughTheStyleInformation($path, $expected)
     {
+        self::assertEquals(
+            $path,
+            self::$reader->key(),
+            'The expected node path was not returned.'
+        );
+
         $info = self::$reader->current();
 
         self::assertInstanceOf(
