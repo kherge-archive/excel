@@ -1,0 +1,324 @@
+<?php
+
+namespace KHerGe\Excel;
+
+use Exception;
+use KHerGe\Excel\Exception\Database\CouldNotBeginTransactionException;
+use KHerGe\Excel\Exception\Database\CouldNotCommitTransactionException;
+use KHerGe\Excel\Exception\Database\CouldNotExecuteException;
+use KHerGe\Excel\Exception\Database\CouldNotPrepareException;
+use KHerGe\Excel\Exception\Database\CouldNotRollBackTransactionException;
+use KHerGe\Excel\Exception\Database\PreparedStatementInUseException;
+use PDO;
+use PDOException;
+use PDOStatement;
+use SplObjectStorage;
+
+use function KHerGe\File\remove;
+use function KHerGe\File\temp_file;
+
+/**
+ * Manages a temporary SQLite database.
+ *
+ * This class will create a new temporary SQLite database on instantiation.
+ * When the instance is destructed, the database will be automatically deleted.
+ * The class also provides a set of helper methods in order to simplify the use
+ * of the database and to improve performance.
+ *
+ * @author Kevin Herrera <kevin@herrera.io>
+ */
+class Database
+{
+    /**
+     * The path to the database file.
+     *
+     * @var string
+     */
+    private $file;
+
+    /**
+     * The database connection.
+     *
+     * @var PDO
+     */
+    private $pdo;
+
+    /**
+     * The prepared statements.
+     *
+     * @var PDOStatement[]
+     */
+    private $prepared = [];
+
+    /**
+     * The prepared statements in use.
+     *
+     * @var PDOStatement[]|SplObjectStorage
+     */
+    private $preparedInUse;
+
+    /**
+     * Initializes the new database manager.
+     *
+     * ```php
+     * $database = new Database('/path/to/temp.db', $pdo);
+     * ```
+     *
+     * @param string $file The path to the temporary file.
+     * @param PDO    $pdo  The database connection.
+     */
+    public function __construct($file, PDO $pdo)
+    {
+        $this->file = $file;
+        $this->pdo = $pdo;
+
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->pdo->setAttribute(
+            PDO::ATTR_DEFAULT_FETCH_MODE,
+            PDO::FETCH_ASSOC
+        );
+
+        $this->preparedInUse = new SplObjectStorage();
+    }
+
+    /**
+     * Deletes the temporary database.
+     */
+    public function __destruct()
+    {
+        $this->pdo = null;
+
+        remove($this->file);
+    }
+
+    /**
+     * Begins a new transaction.
+     *
+     * ```php
+     * $database->begin();
+     * ```
+     *
+     * @throws CouldNotBeginTransactionException If the transaction could not begin.
+     */
+    public function begin()
+    {
+        try {
+            $this->execute('BEGIN TRANSACTION');
+        } catch (CouldNotExecuteException $exception) {
+            throw new CouldNotBeginTransactionException(
+                'The transaction could not begin.',
+                $exception
+            );
+        }
+    }
+
+    /**
+     * Commits the current transaction.
+     *
+     * ```php
+     * $database->commit();
+     * ```
+     *
+     * @throws CouldNotCommitTransactionException If the transaction could not be committed.
+     */
+    public function commit()
+    {
+        try {
+            $this->execute('COMMIT');
+        } catch (CouldNotExecuteException $exception) {
+            throw new CouldNotCommitTransactionException(
+                'The transaction could not committed.',
+                $exception
+            );
+        }
+    }
+
+    /**
+     * Creates a new temporary database.
+     *
+     * @return Database The new database manager.
+     */
+    public static function create()
+    {
+        $file = temp_file();
+
+        return new self($file, new PDO("sqlite:$file"));
+    }
+
+    /**
+     * Prepares a statement and executes it.
+     *
+     * This method will prepare the given SQL statement using the `prepare()`
+     * method. Once prepared, the statement is executed using the parameters
+     * provided. If the statement could not be executed, an exception is
+     * thrown.
+     *
+     * ```php
+     * $executed = $database->execute(
+     *     'SELECT * FROM example WHERE id = :id',
+     *     [
+     *         'id' => 123
+     *     ]
+     * );
+     *
+     * // Do work with the executed statement.
+     *
+     * $database->release($executed);
+     * ```
+     *
+     * @param string $statement  The statement to prepare.
+     * @param array  $parameters The parameters for the statement.
+     *
+     * @return PDOStatement The executed statement.
+     *
+     * @throws CouldNotExecuteException If the statement could not be executed.
+     * @throws CouldNotPrepareException If the statement could not be prepared.
+     */
+    public function execute($statement, array $parameters = [])
+    {
+        $prepared = $this->prepare($statement);
+
+        try {
+            $prepared->execute($parameters);
+        } catch (PDOException $exception) {
+            throw new CouldNotExecuteException(
+                'The SQL statement "%s" could not be executed with: %s',
+                $statement,
+                function_exists('json_encode')
+                    ? json_encode($parameters)
+                    : serialize($parameters)
+            );
+        }
+
+        return $prepared;
+    }
+
+    /**
+     * Prepares a statement for execute.
+     *
+     * This method will prepare the given SQL statement and cache the resulting
+     * object. When the same statement is prepared again, the same object will
+     * be returned. If the statement was prepared before but is currently in
+     * use, an exception is thrown. Once you have finished using the prepared
+     * statement, call `release()` to allow the statement to be re-used.
+     *
+     * ```php
+     * $prepared = $database->prepare('SELECT * FROM example');
+     *
+     * $again = $database->prepare('SELECT * FROM example');
+     *
+     * if ($prepared === $again) {
+     *     // The prepared statements are the same.
+     * }
+     * ```
+     *
+     * @param string $statement The statement to prepare.
+     *
+     * @return PDOStatement The prepared statement.
+     *
+     * @throws CouldNotPrepareException        If the statement could not be prepared.
+     * @throws PreparedStatementInUseException If the statement is already in use.
+     */
+    public function prepare($statement)
+    {
+        if (!isset($this->prepared[$statement])) {
+            try {
+                $this->prepared[$statement] = $this->pdo->prepare($statement);
+            } catch (PDOException $exception) {
+                throw new CouldNotPrepareException(
+                    'The SQL statement "%s" could not be prepared.',
+                    $statement,
+                    $exception
+                );
+            }
+        }
+
+        if (isset($this->preparedInUse[$this->prepared[$statement]])) {
+            throw new PreparedStatementInUseException(
+                'The prepared SQL statement "%s" is already in use.',
+                $statement
+            );
+        }
+
+        $this->preparedInUse[$this->prepared[$statement]] = true;
+
+        return $this->prepared[$statement];
+    }
+
+    /**
+     * Releases a prepared statement so that it can be re-used.
+     *
+     * This method will release a statement that was prepared using the
+     * `prepare()` method. This "release" the statement so that another
+     * process can re-use it.
+     *
+     * ```php
+     * $prepared = $database->prepare('SELECT * FROM example');
+     *
+     * // Do work with the prepared statement.
+     *
+     * $database->release($prepared);
+     * ```
+     *
+     * @param PDOStatement $statement The prepared statement.
+     */
+    public function release(PDOStatement $statement)
+    {
+        unset($this->preparedInUse[$statement]);
+    }
+
+    /**
+     * Rolls back the current transaction.
+     *
+     * ```php
+     * $database->rollBack();
+     * ```
+     *
+     * @throws CouldNotRollBackTransactionException If the transaction could not be rolled back.
+     */
+    public function rollBack()
+    {
+        try {
+            $this->execute('ROLLBACK');
+        } catch (CouldNotExecuteException $exception) {
+            throw new CouldNotRollBackTransactionException(
+                'The transaction could not be rolled back.',
+                $exception
+            );
+        }
+    }
+
+    /**
+     * Invokes a callable inside of a transaction.
+     *
+     * This method will begin a new transaction, invoke the given callable,
+     * and then commit the transaction. If the callable throws an exception,
+     * the transaction is rolled back and the exception is re-thrown.
+     *
+     * ```php
+     * $database->transactional(
+     *     function (Database $database) {
+     *         // Execute statements.
+     *     }
+     * );
+     * ```
+     *
+     * @param callable $callable The callable to invoke.
+     *
+     * @throws Exception If an exception is thrown.
+     */
+    public function transactional(callable $callable)
+    {
+        $this->begin();
+
+        try {
+            $callable($this);
+        } catch (Exception $exception) {
+            $this->rollBack();
+
+            throw $exception;
+        }
+
+        $this->commit();
+    }
+}
