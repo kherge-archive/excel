@@ -286,7 +286,8 @@ class Database
                 $statement,
                 function_exists('json_encode')
                     ? json_encode($parameters)
-                    : serialize($parameters)
+                    : serialize($parameters),
+                $exception
             );
         }
 
