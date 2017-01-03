@@ -291,6 +291,32 @@ class Database
     }
 
     /**
+     * Executes a statement and returns the values of the first row.
+     *
+     * This method will prepare and execute the given statement using the
+     * `execute()` method. Once executed, the values of the first row is
+     * returned.
+     *
+     * ```php
+     * $row = $database->row('SELECT * FROM example WHERE id = :id');
+     * ```
+     *
+     * @param string $statement  The statement to prepare.
+     * @param array  $parameters The parameters for the statement.
+     *
+     * @return array|null The row values, if any.
+     */
+    public function row($statement, array $parameters = [])
+    {
+        $executed = $this->execute($statement, $parameters);
+        $row = $executed->fetch();
+
+        $this->release($executed);
+
+        return (false === $row) ? null : $row;
+    }
+
+    /**
      * Prepares a statement for execute.
      *
      * This method will prepare the given SQL statement and cache the resulting

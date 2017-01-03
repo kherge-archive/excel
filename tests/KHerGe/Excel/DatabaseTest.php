@@ -358,6 +358,40 @@ SQL
     }
 
     /**
+     * @depends testThrowAnExceptionWhenAnExecutedStatementFails
+     *
+     * Verify that the row values are returned.
+     */
+    public function testGetTheRowValues()
+    {
+        $this->database->release(
+            $this->database->execute(
+                <<<SQL
+CREATE TABLE example (
+    id INTEGER PRIMARY KEY,
+    value TEXT
+);
+SQL
+            )
+        );
+
+        $insert = $this->database->prepare(
+            'INSERT INTO example (value) VALUES (:value)'
+        );
+
+        $insert->execute(['value' => 123]);
+
+        self::assertEquals(
+            [
+                'id' => 1,
+                'value' => 123
+            ],
+            $this->database->row('SELECT * FROM example'),
+            'The row values were not returned.'
+        );
+    }
+
+    /**
      * @depends testExecuteASqlStatement
      *
      * Verify that a transaction operation is invoked.
