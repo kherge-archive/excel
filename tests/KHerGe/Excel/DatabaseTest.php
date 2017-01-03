@@ -5,6 +5,7 @@ namespace Test\KHerGe\Excel;
 use KHerGe\Excel\Database;
 use KHerGe\Excel\Exception\Database\CouldNotExecuteException;
 use KHerGe\Excel\Exception\Database\CouldNotPrepareException;
+use KHerGe\Excel\Exception\Database\NoSuchColumnException;
 use KHerGe\Excel\Exception\Database\PreparedStatementInUseException;
 use PDO;
 use PDOStatement;
@@ -146,6 +147,200 @@ class DatabaseTest extends TestCase
         $this->database->execute(
             'CREATE TABLE example (id INTEGER PRIMARY KEY);'
         );
+    }
+
+    /**
+     * @depends testThrowAnExceptionWhenAnExecutedStatementFails
+     *
+     * Verify that all rows are returned.
+     */
+    public function testGetAllRowsForAQuery()
+    {
+        $this->database->release(
+            $this->database->execute(
+                <<<SQL
+CREATE TABLE example (
+    id INTEGER PRIMARY KEY,
+    value TEXT
+);
+SQL
+            )
+        );
+
+        $insert = $this->database->prepare(
+            'INSERT INTO example (value) VALUES (:value)'
+        );
+
+        $insert->execute(['value' => 123]);
+        $insert->execute(['value' => 456]);
+        $insert->execute(['value' => 789]);
+
+        $this->database->release($insert);
+
+        self::assertEquals(
+            [
+                ['id' => 1, 'value' => 123],
+                ['id' => 2, 'value' => 456],
+                ['id' => 3, 'value' => 789]
+            ],
+            $this->database->all('SELECT * FROM example'),
+            'The rows were not returned.'
+        );
+    }
+
+    /**
+     * @depends testThrowAnExceptionWhenAnExecutedStatementFails
+     *
+     * Verify that all rows are returned with proper keys.
+     */
+    public function testGetAllRowsWithProperKeysSet()
+    {
+        $this->database->release(
+            $this->database->execute(
+                <<<SQL
+CREATE TABLE example (
+    id INTEGER PRIMARY KEY,
+    value TEXT
+);
+SQL
+            )
+        );
+
+        $insert = $this->database->prepare(
+            'INSERT INTO example (value) VALUES (:value)'
+        );
+
+        $insert->execute(['value' => 123]);
+        $insert->execute(['value' => 456]);
+        $insert->execute(['value' => 789]);
+
+        $this->database->release($insert);
+
+        self::assertEquals(
+            [
+                1 => ['id' => 1, 'value' => 123],
+                2 => ['id' => 2, 'value' => 456],
+                3 => ['id' => 3, 'value' => 789]
+            ],
+            $this->database->all(
+                'SELECT * FROM example',
+                [],
+                'id'
+            ),
+            'The rows were not returned.'
+        );
+    }
+
+    /**
+     * @depends testThrowAnExceptionWhenAnExecutedStatementFails
+     *
+     * Verify that all rows are returned as key/value pairs.
+     */
+    public function testGetAllRowsAsKeyValuePairs()
+    {
+        $this->database->release(
+            $this->database->execute(
+                <<<SQL
+CREATE TABLE example (
+    id INTEGER PRIMARY KEY,
+    value TEXT
+);
+SQL
+            )
+        );
+
+        $insert = $this->database->prepare(
+            'INSERT INTO example (value) VALUES (:value)'
+        );
+
+        $insert->execute(['value' => 123]);
+        $insert->execute(['value' => 456]);
+        $insert->execute(['value' => 789]);
+
+        $this->database->release($insert);
+
+        self::assertEquals(
+            [
+                1 => 123,
+                2 => 456,
+                3 => 789
+            ],
+            $this->database->all(
+                'SELECT * FROM example',
+                [],
+                'id',
+                'value'
+            ),
+            'The rows were not returned.'
+        );
+    }
+
+    /**
+     * Verify that an exception is thrown when a key column does not exist.
+     */
+    public function testThrowAnExceptionWhenTheKeyColumnDoesNotExist()
+    {
+        $this->database->release(
+            $this->database->execute(
+                <<<SQL
+CREATE TABLE example (
+    id INTEGER PRIMARY KEY,
+    value TEXT
+);
+SQL
+            )
+        );
+
+        $insert = $this->database->prepare(
+            'INSERT INTO example (value) VALUES (:value)'
+        );
+
+        $insert->execute(['value' => 123]);
+        $insert->execute(['value' => 456]);
+        $insert->execute(['value' => 789]);
+
+        $this->database->release($insert);
+
+        $this->expectException(NoSuchColumnException::class);
+        $this->expectExceptionMessage(
+            'The column "test" is used as a key but does not exist.'
+        );
+
+        $this->database->all('SELECT * FROM example', [], 'test');
+    }
+
+    /**
+     * Verify that an exception is thrown when a value column does not exist.
+     */
+    public function testThrowAnExceptionWhenTheValueColumnDoesNotExist()
+    {
+        $this->database->release(
+            $this->database->execute(
+                <<<SQL
+CREATE TABLE example (
+    id INTEGER PRIMARY KEY,
+    value TEXT
+);
+SQL
+            )
+        );
+
+        $insert = $this->database->prepare(
+            'INSERT INTO example (value) VALUES (:value)'
+        );
+
+        $insert->execute(['value' => 123]);
+        $insert->execute(['value' => 456]);
+        $insert->execute(['value' => 789]);
+
+        $this->database->release($insert);
+
+        $this->expectException(NoSuchColumnException::class);
+        $this->expectExceptionMessage(
+            'The column "test" is used as a value but does not exist.'
+        );
+
+        $this->database->all('SELECT * FROM example', [], 'id', 'test');
     }
 
     /**

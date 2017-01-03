@@ -8,6 +8,7 @@ use KHerGe\Excel\Exception\Database\CouldNotCommitTransactionException;
 use KHerGe\Excel\Exception\Database\CouldNotExecuteException;
 use KHerGe\Excel\Exception\Database\CouldNotPrepareException;
 use KHerGe\Excel\Exception\Database\CouldNotRollBackTransactionException;
+use KHerGe\Excel\Exception\Database\NoSuchColumnException;
 use KHerGe\Excel\Exception\Database\PreparedStatementInUseException;
 use PDO;
 use PDOException;
@@ -89,6 +90,76 @@ class Database
         $this->pdo = null;
 
         remove($this->file);
+    }
+
+    /**
+     * Executes a statement and returns all of the values for all rows.
+     *
+     * This method will return all of the values for all of the rows in the
+     * result set for the executed statement. If a `$key` is provided, the
+     * array key for each element will be the value of that field. If a
+     * `$value` is also provided, the value of that column will only be
+     * returned with the key.
+     *
+     * ```php
+     * $rows = $database->all('SELECT * FROM example');
+     *
+     * $pairs = $database->all(
+     *     'SELECT * FROM example',
+     *     [],
+     *     'id',
+     *     'name'
+     * );
+     * ```
+     *
+     * @param string      $statement  The statement to prepare.
+     * @param array       $parameters The parameters for the statement.
+     * @param null|string $key        The column to use as the array key.
+     * @param null|string $value      The column to use as the array value.
+     *
+     * @return array The row values.
+     *
+     * @throws NoSuchColumnException If a key or value column does not exist.
+     */
+    public function all(
+        $statement,
+        array $parameters = [],
+        $key = null,
+        $value = null
+    ) {
+        $executed = $this->execute($statement, $parameters);
+
+        if (null === $key) {
+            $rows = $executed->fetchAll();
+
+            $this->release($executed);
+
+            return $rows;
+        }
+
+        $rows = [];
+
+        while (false !== ($row = $executed->fetch())) {
+            if (!array_key_exists($key, $row)) {
+                throw new NoSuchColumnException(
+                    'The column "%s" is used as a key but does not exist.',
+                    $key
+                );
+            }
+
+            if (null === $value) {
+                $rows[$row[$key]] = $row;
+            } elseif (!array_key_exists($value, $row)) {
+                throw new NoSuchColumnException(
+                    'The column "%s" is used as a value but does not exist.',
+                    $value
+                );
+            } else {
+                $rows[$row[$key]] = $row[$value];
+            }
+        }
+
+        return $rows;
     }
 
     /**
