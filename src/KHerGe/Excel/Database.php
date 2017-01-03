@@ -206,7 +206,7 @@ class Database
 
         $this->release($executed);
 
-        return $column;
+        return (false === $column) ? null : $column;
     }
 
     /**
