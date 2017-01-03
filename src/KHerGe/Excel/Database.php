@@ -159,6 +159,8 @@ class Database
             }
         }
 
+        $this->release($executed);
+
         return $rows;
     }
 
@@ -174,7 +176,7 @@ class Database
     public function begin()
     {
         try {
-            $this->execute('BEGIN TRANSACTION');
+            $this->release($this->execute('BEGIN TRANSACTION'));
         } catch (CouldNotExecuteException $exception) {
             throw new CouldNotBeginTransactionException(
                 'The transaction could not begin.',
@@ -221,7 +223,7 @@ class Database
     public function commit()
     {
         try {
-            $this->execute('COMMIT');
+            $this->release($this->execute('COMMIT'));
         } catch (CouldNotExecuteException $exception) {
             throw new CouldNotCommitTransactionException(
                 'The transaction could not committed.',
@@ -288,32 +290,6 @@ class Database
         }
 
         return $prepared;
-    }
-
-    /**
-     * Executes a statement and returns the values of the first row.
-     *
-     * This method will prepare and execute the given statement using the
-     * `execute()` method. Once executed, the values of the first row is
-     * returned.
-     *
-     * ```php
-     * $row = $database->row('SELECT * FROM example WHERE id = :id');
-     * ```
-     *
-     * @param string $statement  The statement to prepare.
-     * @param array  $parameters The parameters for the statement.
-     *
-     * @return array|null The row values, if any.
-     */
-    public function row($statement, array $parameters = [])
-    {
-        $executed = $this->execute($statement, $parameters);
-        $row = $executed->fetch();
-
-        $this->release($executed);
-
-        return (false === $row) ? null : $row;
     }
 
     /**
@@ -393,6 +369,32 @@ class Database
     }
 
     /**
+     * Executes a statement and returns the values of the first row.
+     *
+     * This method will prepare and execute the given statement using the
+     * `execute()` method. Once executed, the values of the first row is
+     * returned.
+     *
+     * ```php
+     * $row = $database->row('SELECT * FROM example WHERE id = :id');
+     * ```
+     *
+     * @param string $statement  The statement to prepare.
+     * @param array  $parameters The parameters for the statement.
+     *
+     * @return array|null The row values, if any.
+     */
+    public function row($statement, array $parameters = [])
+    {
+        $executed = $this->execute($statement, $parameters);
+        $row = $executed->fetch();
+
+        $this->release($executed);
+
+        return (false === $row) ? null : $row;
+    }
+
+    /**
      * Rolls back the current transaction.
      *
      * ```php
@@ -404,7 +406,7 @@ class Database
     public function rollBack()
     {
         try {
-            $this->execute('ROLLBACK');
+            $this->release($this->execute('ROLLBACK'));
         } catch (CouldNotExecuteException $exception) {
             throw new CouldNotRollBackTransactionException(
                 'The transaction could not be rolled back.',
