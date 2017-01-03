@@ -113,6 +113,32 @@ class Database
     }
 
     /**
+     * Executes a statement and returns the value of the first column.
+     *
+     * This method will prepare and execute the given statement using the
+     * `execute()` method. Once executed, the value of the first column of
+     * the first row is returned.
+     *
+     * ```php
+     * $column = $database->column('SELECT COUNT(*) FROM example');
+     * ```
+     *
+     * @param string $statement  The statement to prepare.
+     * @param array  $parameters The parameters for the statement.
+     *
+     * @return null|string The column value, if any.
+     */
+    public function column($statement, array $parameters = [])
+    {
+        $executed = $this->execute($statement, $parameters);
+        $column = $executed->fetchColumn();
+
+        $this->release($executed);
+
+        return $column;
+    }
+
+    /**
      * Commits the current transaction.
      *
      * ```php

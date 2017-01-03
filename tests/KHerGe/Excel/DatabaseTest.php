@@ -149,6 +149,20 @@ class DatabaseTest extends TestCase
     }
 
     /**
+     * @depends testThrowAnExceptionWhenAnExecutedStatementFails
+     *
+     * Verify that the column value is returned.
+     */
+    public function testGetTheValueOfAColumn()
+    {
+        self::assertEquals(
+            '0',
+            $this->database->column('SELECT COUNT(*) FROM sqlite_master'),
+            'The value of the column was not returned.'
+        );
+    }
+
+    /**
      * @depends testExecuteASqlStatement
      *
      * Verify that a transaction operation is invoked.
