@@ -3,6 +3,7 @@
 namespace KHerGe\Excel;
 
 use Exception;
+use Generator;
 use KHerGe\Excel\Exception\Database\CouldNotBeginTransactionException;
 use KHerGe\Excel\Exception\Database\CouldNotCommitTransactionException;
 use KHerGe\Excel\Exception\Database\CouldNotExecuteException;
@@ -290,6 +291,40 @@ class Database
         }
 
         return $prepared;
+    }
+
+    /**
+     * Executes a statement and yields each row in the result set.
+     *
+     * This method will prepare and execute the given statement using the
+     * `execute()` method. Each row in the results set will be yielded.
+     *
+     * ```php
+     * $generator = $database->iterate('SELECT * FROM example');
+     *
+     * foreach ($generator as $row) {
+     *     // Do something with the row.
+     * }
+     * ```
+     *
+     * @param string $statement  The statement to prepare.
+     * @param array  $parameters The parameters for the statement.
+     *
+     * @return array|Generator The row values.
+     *
+     * @throws NoSuchColumnException If a key or value column does not exist.
+     */
+    public function iterate($statement, array $parameters = [])
+    {
+        $executed = $this->execute($statement, $parameters);
+
+        try {
+            while (false !== ($row = $executed->fetch())) {
+                yield $row;
+            }
+        } finally {
+            $this->release($executed);
+        }
     }
 
     /**

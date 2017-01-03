@@ -152,6 +152,64 @@ class DatabaseTest extends TestCase
     /**
      * @depends testThrowAnExceptionWhenAnExecutedStatementFails
      *
+     * Verify that all rows are iterated through
+     */
+    public function testGetAllRowsAreIterated()
+    {
+        $this->database->release(
+            $this->database->execute(
+                <<<SQL
+CREATE TABLE example (
+    id INTEGER PRIMARY KEY,
+    value TEXT
+);
+SQL
+            )
+        );
+
+        $insert = $this->database->prepare(
+            'INSERT INTO example (value) VALUES (:value)'
+        );
+
+        $insert->execute(['value' => 123]);
+        $insert->execute(['value' => 456]);
+        $insert->execute(['value' => 789]);
+
+        $this->database->release($insert);
+
+        $iterations = [
+            ['id' => 1, 'value' => 123],
+            ['id' => 2, 'value' => 456],
+            ['id' => 3, 'value' => 789]
+        ];
+
+        $generator = $this->database->iterate('SELECT * FROM example');
+
+        foreach ($generator as $i => $row) {
+            self::assertArrayHasKey(
+                $i,
+                $iterations,
+                'This row was not expected.'
+            );
+
+            self::assertEquals(
+                $iterations[$i],
+                $row,
+                'The expected row values were not returned.'
+            );
+
+            unset($iterations[$i]);
+        }
+
+        self::assertEmpty(
+            $iterations,
+            'Not all of the rows were iterated through.'
+        );
+    }
+
+    /**
+     * @depends testThrowAnExceptionWhenAnExecutedStatementFails
+     *
      * Verify that all rows are returned.
      */
     public function testGetAllRowsForAQuery()
