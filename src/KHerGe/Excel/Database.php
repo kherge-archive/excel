@@ -264,6 +264,8 @@ class Database
      */
     public function release(PDOStatement $statement)
     {
+        $statement->closeCursor();
+
         unset($this->preparedInUse[$statement]);
     }
 
