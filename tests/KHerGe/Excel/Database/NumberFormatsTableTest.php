@@ -56,7 +56,7 @@ class NumberFormatsTableTest extends TestCase
     }
 
     /**
-     * Creates a new shared strings table manager.
+     * Creates a new number formats table manager.
      */
     protected function setUp()
     {
