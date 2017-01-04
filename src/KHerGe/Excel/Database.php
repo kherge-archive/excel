@@ -32,6 +32,16 @@ use function KHerGe\File\temp_file;
 class Database
 {
     /**
+     * The list of keywords that cause the schema to change.
+     *
+     * @var string[]
+     */
+    private static $changes = [
+        'CREATE',
+        'DROP'
+    ];
+
+    /**
      * The path to the database file.
      *
      * @var string
@@ -356,6 +366,8 @@ class Database
      */
     public function prepare($statement)
     {
+        $this->clear($statement);
+
         if (!isset($this->prepared[$statement])) {
             try {
                 $this->prepared[$statement] = $this->pdo->prepare($statement);
@@ -483,5 +495,28 @@ class Database
         }
 
         $this->commit();
+    }
+
+    /**
+     * Checks if a statement changes the schema and clears itself.
+     *
+     * This method will check if the statement will cause a change to the
+     * schema. If the schema will be changed then all of the prepared
+     * statements are cleared.
+     *
+     * @param string $statement The statement to check.
+     */
+    private function clear($statement)
+    {
+        $statement = strtoupper($statement);
+
+        foreach (self::$changes as $keyword) {
+            if (false !== strpos($statement, $keyword)) {
+                $this->prepared = [];
+                $this->preparedInUse = new SplObjectStorage();
+
+                break;
+            }
+        }
     }
 }

@@ -87,7 +87,7 @@ class DatabaseTest extends TestCase
      */
     public function testThrowAnExceptionIfUsingAPreparedStatementTwiceConcurrently()
     {
-        $statement = 'CREATE TABLE example (id INTEGER PRIMARY KEY);';
+        $statement = 'SELECT * FROM sqlite_master';
 
         $this->database->prepare($statement);
 
@@ -103,7 +103,7 @@ class DatabaseTest extends TestCase
      */
     public function testReleaseAPreparedStatement()
     {
-        $statement = 'CREATE TABLE example (id INTEGER PRIMARY KEY);';
+        $statement = 'SELECT * FROM sqlite_master';
 
         $prepared = $this->database->prepare($statement);
 
@@ -141,11 +141,18 @@ class DatabaseTest extends TestCase
                 'CREATE TABLE example (id INTEGER PRIMARY KEY);'
             )
         );
+        $this->database->release(
+            $this->database->execute(
+                'INSERT INTO example (id) VALUES (:id);',
+                ['id' => 1]
+            )
+        );
 
         $this->expectException(CouldNotExecuteException::class);
 
         $this->database->execute(
-            'CREATE TABLE example (id INTEGER PRIMARY KEY);'
+            'INSERT INTO example (id) VALUES (:id);',
+            ['id' => 1]
         );
     }
 
