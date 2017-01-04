@@ -141,6 +141,7 @@ class StylesReader implements Iterator
      */
     public function rewind()
     {
+        $this->cellStyleCounter = 0;
         $this->info = null;
         $this->path = null;
 
