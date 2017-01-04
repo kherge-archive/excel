@@ -90,6 +90,8 @@ class Database
             PDO::FETCH_ASSOC
         );
 
+        $this->pdo->exec('PRAGMA foreign_keys = 1');
+
         $this->preparedInUse = new SplObjectStorage();
     }
 
