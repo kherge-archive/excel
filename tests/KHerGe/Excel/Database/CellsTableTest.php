@@ -281,7 +281,7 @@ class CellsTableTest extends TestCase
                 'type' => 's',
                 'value' => null,
                 'shared' => 'General',
-                'format' => null
+                'format' => 'General'
             ],
             $this->table->getCell(1, 'A', 1),
             'The worksheet cell values were not imported.'
