@@ -235,7 +235,7 @@ class CellsTableTest extends TestCase
         $this->sharedStrings->import(
             new SharedStringsReader(
                 sprintf(
-                    'zip://%s#xl/styles.xml',
+                    'zip://%s#xl/sharedStrings.xml',
                     __DIR__ . '/../../../../res/simple.xlsx'
                 )
             )
@@ -266,7 +266,7 @@ class CellsTableTest extends TestCase
                 'row' => '1',
                 'type' => 's',
                 'value' => null,
-                'shared' => null,
+                'shared' => 'General',
                 'format' => null
             ],
             $this->table->getCell(1, 'A', 1),
