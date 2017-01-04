@@ -31,6 +31,18 @@ class NumberFormatsTableTest extends TestCase
     private $table;
 
     /**
+     * Verify that the default formats are imported.
+     */
+    public function testTheDefaultNumberFormatsAreImported()
+    {
+        self::assertEquals(
+            'm/d/yy h:mm',
+            $this->database->column('SELECT format FROM formats WHERE id = 22'),
+            'The default number formats were not imported.'
+        );
+    }
+
+    /**
      * Verify that the number formats are imported.
      */
     public function testImportTheNumberFormats()
