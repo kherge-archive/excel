@@ -389,31 +389,30 @@ SQL;
     {
         $this->database->transactional(
             function (Database $database) use ($index, $reader) {
-                $insert = $database->prepare(self::INSERT);
-
                 foreach ($reader as $data) {
                     if ($data instanceof CellInfo) {
                         $shared = ('s' === $data->getType());
 
-                        $insert->execute(
-                            [
-                                'worksheet' => $index,
-                                'column' => $this->toIndex($data->getColumn()),
-                                'row' => $data->getRow(),
-                                'type' => $data->getType(),
-                                'style' => $data->getStyleId(),
-                                'value' => $shared
-                                    ? null
-                                    : $data->getRawValue(),
-                                'shared' => $shared
-                                    ? $data->getRawValue()
-                                    : null
-                            ]
+                        $database->release(
+                            $database->execute(
+                                self::INSERT,
+                                [
+                                    'worksheet' => $index,
+                                    'column' => $this->toIndex($data->getColumn()),
+                                    'row' => $data->getRow(),
+                                    'type' => $data->getType(),
+                                    'style' => $data->getStyleId(),
+                                    'value' => $shared
+                                        ? null
+                                        : $data->getRawValue(),
+                                    'shared' => $shared
+                                        ? $data->getRawValue()
+                                        : null
+                                ]
+                            )
                         );
                     }
                 }
-
-                $database->release($insert);
             }
         );
     }
