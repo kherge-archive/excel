@@ -70,6 +70,8 @@ class CellsTableTest extends TestCase
      */
     public function testGetTheNumberOfColumnsInAWorksheet()
     {
+        $this->insertWorksheet(1, 'Test');
+
         $this->insertCell(1, 1, 1, 'alpha');
         $this->insertCell(1, 2, 1, 'beta');
         $this->insertCell(1, 3, 1, 'gamma');
@@ -86,6 +88,8 @@ class CellsTableTest extends TestCase
      */
     public function testGetTheNumberOfRowsInAWorksheet()
     {
+        $this->insertWorksheet(1, 'Test');
+
         $this->insertCell(1, 1, 1, 'alpha');
         $this->insertCell(1, 1, 2, 'beta');
         $this->insertCell(1, 1, 3, 'gamma');
@@ -102,6 +106,8 @@ class CellsTableTest extends TestCase
      */
     public function testGetTheDataForASpecificCell()
     {
+        $this->insertWorksheet(1, 'Test');
+
         $this->insertCell(1, 1, 1, 'test');
 
         self::assertEquals(
@@ -123,6 +129,8 @@ class CellsTableTest extends TestCase
      */
     public function testGetTheDataForASpecificRowOfCells()
     {
+        $this->insertWorksheet(1, 'Test');
+
         $this->insertCell(1, 1, 1, 'alpha');
         $this->insertCell(1, 2, 1, 'beta');
         $this->insertCell(1, 3, 1, 'gamma');
@@ -171,6 +179,8 @@ class CellsTableTest extends TestCase
             'The cell should not exist.'
         );
 
+        $this->insertWorksheet(1, 'Test');
+
         $this->insertCell(1, 1, 1, 'test');
 
         self::assertTrue(
@@ -189,6 +199,8 @@ class CellsTableTest extends TestCase
             'The column should not exist.'
         );
 
+        $this->insertWorksheet(1, 'Test');
+
         $this->insertCell(1, 1, 1, 'test');
 
         self::assertTrue(
@@ -206,6 +218,8 @@ class CellsTableTest extends TestCase
             $this->table->hasRow(1, 1),
             'The row should not exist.'
         );
+
+        $this->insertWorksheet(1, 'Test');
 
         $this->insertCell(1, 1, 1, 'test');
 
@@ -279,6 +293,8 @@ class CellsTableTest extends TestCase
      */
     public function testIterateThroughEachValueInAColumnFoAWorksheet()
     {
+        $this->insertWorksheet(1, 'Test');
+
         $this->insertCell(1, 1, 1, 'a');
         $this->insertCell(1, 2, 1, 'b');
         $this->insertCell(1, 3, 1, 'c');
@@ -320,6 +336,8 @@ class CellsTableTest extends TestCase
      */
     public function testIterateThroughEachRowInAWorksheet()
     {
+        $this->insertWorksheet(1, 'Test');
+
         $this->insertCell(1, 1, 1, 'a');
         $this->insertCell(1, 2, 1, 'b');
         $this->insertCell(1, 3, 1, 'c');
@@ -427,6 +445,31 @@ SQL
                     'style' => null,
                     'value' => $shared ? null : $value,
                     'shared' => $shared ? $index : null
+                ]
+            )
+        );
+    }
+
+    /**
+     * Inserts a new worksheet into the table.
+     *
+     * @param integer $index The index of the worksheet.
+     * @param string  $name  The name of the worksheet.
+     */
+    private function insertWorksheet($index, $name)
+    {
+
+        $this->database->release(
+            $this->database->execute(
+                <<<SQL
+INSERT INTO worksheets
+            ("index", name)
+     VALUES (:index, :name)
+SQL
+,
+                [
+                    'index' => $index,
+                    'name' => $name
                 ]
             )
         );
