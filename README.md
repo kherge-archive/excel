@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/kherge-php/excel.svg?branch=master)](https://travis-ci.org/kherge-php/excel)
-[![Packagist](https://img.shields.io/packagist/v/kherge/excel.svg)]()
-[![Packagist Pre Release](https://img.shields.io/packagist/vpre/kherge/excel.svg)]()
+[![Packagist](https://img.shields.io/packagist/v/kherge-php/excel.svg)]()
+[![Packagist Pre Release](https://img.shields.io/packagist/vpre/kherge-php/excel.svg)]()
 
 Excel
 =====

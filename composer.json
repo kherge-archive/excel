@@ -8,8 +8,8 @@
         "Apache-2.0"
     ],
     "support": {
-        "issues": "https://gitlab.com/kherge-php/excel/issues",
-        "source": "https://gitlab.com/kherge-php/excel"
+        "issues": "https://github.com/kherge-php/excel/issues",
+        "source": "https://github.com/kherge-php/excel"
     },
 
     "authors": [
