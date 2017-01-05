@@ -252,20 +252,19 @@ SQL;
     {
         $this->database->transactional(
             function (Database $database) use ($reader) {
-                $insert = $database->prepare(self::INSERT);
-
                 foreach ($reader as $data) {
                     if ($data instanceof WorksheetInfo) {
-                        $insert->execute(
-                            [
-                                'index' => $data->getIndex(),
-                                'name' => $data->getName()
-                            ]
+                        $database->release(
+                            $database->execute(
+                                self::INSERT,
+                                [
+                                    'index' => $data->getIndex(),
+                                    'name' => $data->getName()
+                                ]
+                            )
                         );
                     }
                 }
-
-                $database->release($insert);
             }
         );
     }

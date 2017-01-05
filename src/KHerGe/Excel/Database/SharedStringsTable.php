@@ -75,18 +75,17 @@ SQL;
     {
         $this->database->transactional(
             function (Database $database) use ($reader) {
-                $insert = $database->prepare(self::INSERT);
-
                 foreach ($reader as $index => $string) {
-                    $insert->execute(
-                        [
-                            'index' => $index,
-                            'string' => $string
-                        ]
+                    $database->release(
+                        $database->execute(
+                            self::INSERT,
+                            [
+                                'index' => $index,
+                                'string' => $string
+                            ]
+                        )
                     );
                 }
-
-                $database->release($insert);
             }
         );
     }

@@ -77,23 +77,22 @@ SQL;
     {
         $this->database->transactional(
             function (Database $database) use ($reader) {
-                $insert = $database->prepare(self::INSERT);
-
                 foreach ($reader as $data) {
                     if ($data instanceof CellStyleInfo) {
-                        $insert->execute(
-                            [
-                                'id' => $data->getId(),
-                                'isNumber' => $data->isNumberFormat()
-                                    ? 1
-                                    : 0,
-                                'numberFormat' => $data->getNumberFormatId()
-                            ]
+                        $database->release(
+                            $database->execute(
+                                self::INSERT,
+                                [
+                                    'id' => $data->getId(),
+                                    'isNumber' => $data->isNumberFormat()
+                                        ? 1
+                                        : 0,
+                                    'numberFormat' => $data->getNumberFormatId()
+                                ]
+                            )
                         );
                     }
                 }
-
-                $database->release($insert);
             }
         );
     }

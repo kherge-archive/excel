@@ -108,20 +108,19 @@ SQL;
     {
         $this->database->transactional(
             function (Database $database) use ($reader) {
-                $insert = $database->prepare(self::INSERT);
-
                 foreach ($reader as $data) {
                     if ($data instanceof NumberFormatInfo) {
-                        $insert->execute(
-                            [
-                                'id' => $data->getId(),
-                                'format' => $data->getFormatCode()
-                            ]
+                        $database->release(
+                            $database->execute(
+                                self::INSERT,
+                                [
+                                    'id' => $data->getId(),
+                                    'format' => $data->getFormatCode()
+                                ]
+                            )
                         );
                     }
                 }
-
-                $database->release($insert);
             }
         );
     }
