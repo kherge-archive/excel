@@ -53,6 +53,13 @@ class SharedStringsReader implements Iterator
     private $string;
 
     /**
+     * The current validity state.
+     *
+     * @var boolean
+     */
+    private $valid = false;
+
+    /**
      * Initializes the new shared strings reader.
      *
      * @param string $file The path to the XML file.
@@ -91,6 +98,8 @@ class SharedStringsReader implements Iterator
             return;
         }
 
+        $this->valid = false;
+
         $this->index++;
 
         $this->reader->advanceTo(
@@ -103,7 +112,10 @@ class SharedStringsReader implements Iterator
             }
         );
 
-        $this->string = $this->reader->readTextContent();
+        if ('si' === $this->reader->current()->getLocalName()) {
+            $this->string = $this->reader->readTextContent();
+            $this->valid = true;
+        }
     }
 
     /**
@@ -112,6 +124,7 @@ class SharedStringsReader implements Iterator
     public function rewind()
     {
         $this->index = -1;
+        $this->valid = false;
 
         $this->reader = new AdvancedFileReader($this->file);
         $this->reader->rewind();
@@ -126,6 +139,6 @@ class SharedStringsReader implements Iterator
      */
     public function valid()
     {
-        return (null !== $this->string);
+        return $this->valid;
     }
 }

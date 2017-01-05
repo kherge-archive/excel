@@ -33,7 +33,7 @@ SQL;
     const SCHEMA = <<<SQL
 CREATE TABLE strings (
     "index" INTEGER PRIMARY KEY,
-    string  TEXT    NOT NULL
+    string  TEXT
 );
 SQL;
 
